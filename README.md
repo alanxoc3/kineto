@@ -1,30 +1,13 @@
 # kineto
+This is a fork of [kineto][kineto], which is hosted at source hut. Some extra notes:
 
-This is an [HTTP][http] to [Gemini][gemini] proxy designed to provide service
-for a single domain, i.e. to make your Gemini site available over HTTP. It
-can proxy to any domain in order to facilitate linking to the rest of
-Geminispace, but it defaults to a specific domain.
+* Kineto is a gemini to http proxy.
+* Gemini is a simple protocol for hipsters who don't like the modern web.
+* The changes in this repo are specific to my website setup, which you can find at [alanxoc3.xyz][alanxoc3].
+* My [dotfiles repo][dotfiles] has some scripts that show more of my gemini & website setup.
+* As of 2021-07-03, the [official gemini website][gemini] is also hosted with kineto.
 
-[http]: https://en.wikipedia.org/wiki/Hypertext_Transfer_Protocol
+[kineto]: https://git.sr.ht/~sircmpwn/kineto
+[alanxoc3]: https://alanxoc3.xyz/
 [gemini]: https://gemini.circumlunar.space/
-
-## Usage
-
-```
-$ go build
-$ ./kineto [-b 127.0.0.1:8080] [-s style.css] gemini://example.org
-```
-
-The -b argument is optional and allows you to bind to an arbitrary address; by
-default kineto will bind to `:8080`. You should set up some external reverse
-proxy like nginx to forward traffic to this port and add TLS.
-
-The -s argument is optional and allows you to specify a custom CSS file. By
-default kineto will serve its built-in style.
-
-## "kineto"?
-
-It's named after the Contraves-Goerz Kineto Tracking Mount, which is used by
-NASA to watch rockets as they ascend to orbit.
-
-![](https://l.sr.ht/_frS.jpeg)
+[dotfiles]: https://github.com/alanxoc3/dotfiles
