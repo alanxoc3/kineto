@@ -104,15 +104,21 @@ var gemtextPage = template.Must(template.
 			if err != nil {
 				return template.URL("error")
 			}
+
 			u = ctx.URL.ResolveReference(u)
 
 			if u.Scheme == "" || u.Scheme == "gemini" {
 				if u.Host != ctx.Root.Host {
-					u.Path = fmt.Sprintf("/x/%s%s", u.Host, u.Path)
+					u.Path = "/leaving.gmi"
+					u.RawQuery = ""
 				}
 				u.Scheme = ""
 				u.Host = ""
+				if u.Path == "" {
+    				u.Path = "/"
+				}
 			}
+
 			return template.URL(u.String())
 		},
 		"safeCSS": func(s string) template.CSS {
@@ -195,26 +201,6 @@ var gemtextPage = template.Must(template.
 	</ul>
 	{{- end }}
 </article>
-<details>
-	<summary>
-		Proxied content from <a href="{{.URL.String | safeURL}}">{{.URL.String}}</a>
-		{{if .External}}
-		(external content)
-		{{end}}
-	</summary>
-	<p>Gemini request details:
-	<dl>
-		<dt>Original URL</dt>
-		<dd><a href="{{.URL.String | safeURL}}">{{.URL.String}}</a></dd>
-		<dt>Status code</dt>
-		<dd>{{.Resp.Status}}</dd>
-		<dt>Meta</dt>
-		<dd>{{.Resp.Meta}}</dd>
-		<dt>Proxied by</dt>
-		<dd><a href="https://sr.ht/~sircmpwn/kineto">kineto</a></dd>
-	</dl>
-	<p>Be advised that no attempt was made to verify the remote SSL certificate.
-</details>
 `))
 
 var inputPage = template.Must(template.
@@ -426,7 +412,7 @@ func proxyGemini(req gemini.Request, external bool, root *url.URL,
 			return
 		}
 		if external {
-			next.Path = fmt.Sprintf("/x/%s/%s", next.Host, next.Path)
+			next.Path = "/leaving.gmi"
 		}
 		next.Host = r.URL.Host
 		next.Scheme = r.URL.Scheme
@@ -573,40 +559,6 @@ func main() {
 		req.URL.Path = r.URL.Path
 		req.URL.RawQuery = r.URL.RawQuery
 		proxyGemini(req, false, root, w, r, css)
-	}))
-
-	http.Handle("/x/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Method == "POST" {
-			r.ParseForm()
-			if q, ok := r.Form["q"]; !ok {
-				w.WriteHeader(http.StatusBadRequest)
-				w.Write([]byte("Bad request"))
-			} else {
-				w.Header().Add("Location", "?"+q[0])
-				w.WriteHeader(http.StatusFound)
-				w.Write([]byte("Redirecting"))
-			}
-			return
-		}
-
-		if r.Method != "GET" {
-			w.WriteHeader(http.StatusMethodNotAllowed)
-			w.Write([]byte("404 Not found"))
-			return
-		}
-
-		path := strings.SplitN(r.URL.Path, "/", 4)
-		if len(path) != 4 {
-			path = append(path, "")
-		}
-		req := gemini.Request{}
-		req.URL = &url.URL{}
-		req.URL.Scheme = "gemini"
-		req.URL.Host = path[2]
-		req.URL.Path = "/" + path[3]
-		req.URL.RawQuery = r.URL.RawQuery
-		log.Printf("%s (external) %s%s", r.Method, r.URL.Host, r.URL.Path)
-		proxyGemini(req, true, root, w, r, css)
 	}))
 
 	log.Printf("HTTP server listening on %s", bind)
